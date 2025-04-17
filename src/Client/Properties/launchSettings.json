@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Do-Not-Run-Client": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:47852;http://localhost:47853"
+    }
+  }
+}
