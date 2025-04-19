@@ -1,0 +1,10 @@
+services:
+  chatclient:
+    image: chat-client
+    build:
+      context: .
+      dockerfile: Client/Dockerfile
+    ports:
+      - "8091:80"
+ 
+

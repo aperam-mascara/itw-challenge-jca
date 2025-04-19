@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Chat.Routes\Chat.Routes.csproj" />
     <ProjectReference Include="..\EFUtilities\EFUtilities.csproj" />
     <ProjectReference Include="..\Shared\Chat.Shared.csproj" />
   </ItemGroup>

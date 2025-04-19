@@ -9,12 +9,15 @@
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
     <DockerServiceName>chat.server</DockerServiceName>
     <DockerComposeEnvFilePath>./.env</DockerComposeEnvFilePath>
+    <DockerComposeProjectName>chat_application</DockerComposeProjectName>
+
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />
-    <None Include="docker-compose.override.yml">
+    <None Include="docker-compose.override.yml"  Condition="'$(Configuration)'=='Debug'">
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
+   
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
   </ItemGroup>

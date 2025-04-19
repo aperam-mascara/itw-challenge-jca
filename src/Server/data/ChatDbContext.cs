@@ -1,4 +1,5 @@
-﻿using Chat.Shared.models;
+﻿using Chat.Shared.data;
+using Chat.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chat.Server.data;
@@ -7,15 +8,12 @@ namespace Chat.Server.data;
 /// <summary>
 /// This class represents the database context for the chat application.
 /// </summary>
-public class ChatDbContext:DbContext
+/// <remarks>
+/// Constructor for ChatDbContext.
+/// </remarks>
+/// <param name="options"></param>
+public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(options), IChatDbContext
 {
-    /// <summary>
-    /// Constructor for ChatDbContext.
-    /// </summary>
-    /// <param name="options"></param>
-    public ChatDbContext(DbContextOptions<ChatDbContext> options) : base(options)
-    {
-    }
 
     /// <summary>
     /// DbSet for User entity.

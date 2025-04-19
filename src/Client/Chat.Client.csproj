@@ -1,5 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
 
+    <EnableSdkContainerDebugging>false</EnableSdkContainerDebugging>
+    <ContainerDevelopmentMode>Regular</ContainerDevelopmentMode>
+    <PublishTrimmed>false</PublishTrimmed>
+  </PropertyGroup>
  
 
   <ItemGroup>

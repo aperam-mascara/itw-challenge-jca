@@ -34,4 +34,41 @@ public static class EFExtensions
         }
         return host;
     }
+
+    
+    /// <summary>
+    /// Extension method to seed the database with initial data.
+    /// </summary>
+    /// <typeparam name="TDbContext"></typeparam>
+    /// <param name="app"></param>
+    /// <param name="seedAction"></param>
+    /// <returns></returns>
+    public static async Task<IHost> SeedAsync<TDbContext>(this IHost app, Func<TDbContext, Task> seedAction)
+        where TDbContext : DbContext
+    {
+        
+        using (var scope = app.Services.CreateScope())
+        {
+            
+            var services = scope.ServiceProvider;
+            try
+            {
+                var dbContext = services.GetRequiredService<TDbContext>();
+
+                // Assurez-vous que la base de données est créée
+                await dbContext.Database.EnsureCreatedAsync();
+
+                // Exécutez l'action de seeding fournie
+                await seedAction(dbContext);
+            }
+            catch (Exception ex)
+            {
+                var logger = services.GetRequiredService<ILogger<TDbContext>>();
+                logger.LogError(ex, "Une erreur s'est produite lors du seeding de la base de données.");
+                throw;
+            }
+        }
+
+        return app;
+    }
 }
