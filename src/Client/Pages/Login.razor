@@ -1,0 +1,70 @@
+﻿@page "/login"
+@using Chat.Client.Services
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height: calc(100vh - 64px);">
+    <MudPaper Elevation="3" Class="pa-8" Style="width: 100%;">
+        <MudText Typo="Typo.h5" Class="mb-4 text-center">Welcome to Simple Chat</MudText>
+
+        <MudText Typo="Typo.body1" Class="mb-4">Enter your username to start chatting:</MudText>
+
+        <MudTextField T="string"
+                      @bind-Value="Username"
+                      Label="Username"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Person"
+                      Class="mb-4"
+                      Placeholder="Enter a username"
+                      Required="true"
+                      RequiredError="Username is required"
+                      Immediate="true"
+                      Error="_hasError"
+                      ErrorText="Username is required"
+                      @onkeyup="HandleKeyPress" />
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   FullWidth="true"
+                   OnClick="TryLogin"
+                   Disabled="string.IsNullOrWhiteSpace(Username)">
+            Enter Chat
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private string Username { get; set; } = string.Empty;
+    private bool _hasError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var currentUser = await UserService.GetCurrentUserAsync();
+
+        if (currentUser != null)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+    }
+
+    private async Task TryLogin()
+    {
+        if (string.IsNullOrWhiteSpace(Username))
+        {
+            _hasError = true;
+            return;
+        }
+
+        await UserService.LoginAsync(Username);
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await TryLogin();
+        }
+    }
+}

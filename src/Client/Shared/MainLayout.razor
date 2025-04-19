@@ -1,13 +1,86 @@
-﻿@inherits LayoutComponentBase
+﻿@using Chat.Client.Services
+@using Chat.Shared.Models
+@inherits LayoutComponentBase
+@implements IDisposable
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudText Typo="Typo.h6">APERAM - Simple Chat</MudText>
+        <MudSpacer />
+        @if (_currentUser != null)
+        {
+            <MudStack Row="true">
+                <MudText Class="d-flex align-center gap-2">
+                    <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                    <span>@_currentUser?.Username</span>
+                </MudText>
 
-    <main>
-        <article class="content px-4">
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" aria-label="logout" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" OnClick="LogoutAsync" />
+
+            </MudStack>
+        }
+    </MudAppBar>
+    <MudMainContent>
+        @if (!_isHealthy)
+        {
+            <div class="server-unavailable">
+                <MudAlert Severity="Severity.Error" Class="my-2">
+                    Server is currently unavailable. Retrying connection...
+                </MudAlert>
+            </div>
+        }
+        else
+        {
+
             @Body
-        </article>
-    </main>
-</div>
+        }
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private User? _currentUser;
+    private bool _isHealthy = true;
+    private Timer? _healthCheckTimer;
+
+    [Inject] private IUserService UserService { get; set; } = null!;
+    [Inject] private IHealthService HealthService { get; set; } = null!;
+    [Inject] private NavigationManager NavigationManager { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        UserService.OnUserChanged += HandleUserChanged;
+
+
+        _healthCheckTimer = new Timer(async _ =>
+        {
+            await CheckHealthAsync();
+            await InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+
+    private async Task CheckHealthAsync()
+    {
+        _isHealthy = await HealthService.IsHealthyAsync();
+    }
+
+    private void HandleUserChanged(User? user)
+    {
+        _currentUser = user;
+        if (_currentUser == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LogoutAsync()
+    {
+        await UserService.LogoutAsync();
+       
+    }
+    public void Dispose()
+    {
+        _healthCheckTimer?.Dispose();
+    }
+}

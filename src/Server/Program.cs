@@ -11,10 +11,24 @@ builder.Services.AddDbContext<ChatDbContext>(options =>
 
 
 builder.Services.Configure<ChatRouteOptions>(builder.Configuration.GetSection(ChatRouteOptions.SECTION_NAME));
+// Add health checks
+builder.Services.AddHealthChecks();
+
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 WebApplication app = builder.Build();
 
-
+app.UseCors("AllowAll");
 
 
 if (app.Environment.IsDevelopment())
@@ -56,4 +70,5 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
+app.MapHealthChecks("/health");
 app.Run();

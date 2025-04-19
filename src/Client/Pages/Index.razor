@@ -1,8 +1,223 @@
 ﻿@page "/"
+@using Chat.Client.Services
+@using Chat.Shared.Dtos
+@using Chat.Shared.Models
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+@inject IMessageService MessageService
+@implements IDisposable
+@if (_currentUser == null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <div class="chat-container">
+        <div class="users-panel">
+            <MudList T="User" Clickable="true" Class="py-0" SelectionMode="SelectionMode.SingleSelection" @bind-SelectedValue="_selectedUser">
+                <MudListSubheader>
+                    <div class="d-flex align-center">
+                        <MudText Typo="Typo.subtitle1">Users</MudText>
+                        <MudSpacer />
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       Size="Size.Small"
+                                       OnClick="LoadUsersAsync" />
+                    </div>
+                </MudListSubheader>
 
-<PageTitle>Index</PageTitle>
+                @foreach (var user in _users.Where(u => u.Id != _currentUser.Id))
+                {
+                    <MudListItem Class="@(user == _selectedUser ? "user-item user-item-active" : "user-item")"
+                                 OnClick="() => SelectUserAsync(user)">
+                        <div class="d-flex align-center">
+                            <MudAvatar Color="Color.Secondary" Size="Size.Small" Class="mr-3">
+                                @user.Username[0]
+                            </MudAvatar>
+                            <MudText>@user.Username</MudText>
+                        </div>
+                    </MudListItem>
+                }
 
-<h1>Hello, world!</h1>
+                @if (_users.Count <= 1)
+                {
+                    <MudListItem>
+                        <MudText Typo="Typo.body2" Class="mud-text-disabled">
+                            No other users available
+                        </MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        </div>
 
-Welcome to your new app.
+        <div class="chat-panel">
+            @if (_selectedUser == null)
+            {
+                <div class="d-flex align-center justify-center" style="height: 100%;">
+                    <MudText Typo="Typo.h6" Class="mud-text-disabled">
+                        Select a user to start chatting
+                    </MudText>
+                </div>
+            }
+            else
+            {
 
+
+                <div class="message-list" @ref="_messageListRef">
+                    @foreach (var message in _messages)
+                    {
+                        <div class="d-flex flex-column  @(message.SenderId == _currentUser.Id ? "align-end" : "align-start")">
+                            <div class="message-bubble @(message.SenderId == _currentUser.Id ? "message-sent" : "message-received")">
+                                @message.Content
+                            </div>
+                            <div class="message-time">
+                                @message.Timestamp.ToLocalTime().ToString("g")
+                            </div>
+                        </div>
+                    }
+
+                    @if (!_messages.Any())
+                    {
+                        <MudText Typo="Typo.body2" Class="mud-text-disabled text-center mt-4">
+                            No messages yet. Start the conversation!
+                        </MudText>
+                    }
+                </div>
+
+                <div class="message-input">
+                    <MudStack Row="true">
+
+                        <MudTextField T="string"
+                                      @bind-Value="_newMessage"
+                                      Label="Type a message"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.Send"
+                                      OnAdornmentClick="SendMessageAsync"
+                                      AdornmentColor="Color.Primary"
+                                      FullWidth="true"
+                                      Immediate="true"
+                                      @onkeyup="HandleKeyPress" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                                       OnClick="LoadMessagesAsync"
+                                       Tooltip="Refresh messages" />
+                    </MudStack>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private User? _currentUser;
+    private List<User> _users = new();
+    private User? _selectedUser;
+    private List<Message> _messages = new();
+    private string _newMessage = string.Empty;
+    private ElementReference _messageListRef;
+    [Inject] IJSRuntime JS { get; set; } = null!;
+    private Timer? _messageRefreshTimer;
+    private Timer? _userRefreshTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await UserService.GetCurrentUserAsync();
+
+        if (_currentUser == null)
+        {
+            NavigationManager.NavigateTo("/login");
+            return;
+        }
+
+        await LoadUsersAsync();
+
+        // Start message refresh timer
+        _messageRefreshTimer = new Timer(async _ =>
+        {
+            if (_selectedUser != null)
+            {
+                await LoadMessagesAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+
+        // Start message refresh timer
+        _userRefreshTimer = new Timer(async _ =>
+        {
+
+            await LoadUsersAsync();
+            await InvokeAsync(StateHasChanged);
+
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await ScrollToBottomAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _users = await UserService.GetUsersAsync();
+        StateHasChanged();
+    }
+
+    private async Task SelectUserAsync(User user)
+    {
+        _selectedUser = user;
+        await LoadMessagesAsync();
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        if (_currentUser == null || _selectedUser == null)
+            return;
+
+        _messages = await MessageService.GetMessagesAsync(_currentUser.Id, _selectedUser.Id);
+        StateHasChanged();
+        await ScrollToBottomAsync();
+    }
+
+    private async Task SendMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_newMessage) || _currentUser == null || _selectedUser == null)
+            return;
+
+        var messageDto = new SendMessageDto
+            {
+                Content = _newMessage,
+                SenderId = _currentUser.Id,
+                ReceiverId = _selectedUser.Id
+            };
+
+        await MessageService.SendMessageAsync(messageDto);
+        _newMessage = string.Empty;
+        await LoadMessagesAsync();
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendMessageAsync();
+        }
+    }
+
+    private async Task ScrollToBottomAsync()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToBottom", _messageListRef);
+        }
+        catch
+        {
+            // Ignore errors when JSRuntime not available
+        }
+    }
+
+    public void Dispose()
+    {
+        _messageRefreshTimer?.Dispose();
+        _userRefreshTimer?.Dispose();
+    }
+}
