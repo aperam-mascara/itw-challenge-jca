@@ -17,8 +17,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: chatdb
-      LANG: fr_FR.UTF-8
-      LC_ALL: fr_FR.UTF-8
     volumes:
       - ./chat-db-data:/var/lib/postgresql/data/
 

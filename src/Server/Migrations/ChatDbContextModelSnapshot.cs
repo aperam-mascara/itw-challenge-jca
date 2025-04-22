@@ -58,6 +58,7 @@ namespace Chat.Server.Migrations
 
             modelBuilder.Entity("Chat.Shared.models.User", b =>
                 {
+                    
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");

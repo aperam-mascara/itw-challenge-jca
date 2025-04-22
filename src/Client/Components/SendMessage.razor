@@ -1,0 +1,57 @@
+﻿@inherits LoggableComponent
+
+<div class="message-input">
+    <MudStack Row="true">
+
+        <MudTextField T="string"
+                      @bind-Value="_newMessage"
+                      Label="@GetLabel()"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@Icons.Material.Filled.Send"
+                      OnAdornmentClick="SendMessageAsync"
+                      AdornmentColor="Color.Primary"
+                      FullWidth="true"
+                      Immediate="true"
+                      @onkeyup="HandleKeyPress" />
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                       OnClick="LoadMessagesAsync" />
+    </MudStack>
+</div>
+
+@code {
+
+    [CascadingParameter(Name = "OnSend")]
+    public EventCallback<string> OnSend { get; set; }
+
+    
+    [CascadingParameter(Name = "OnLoadMessages")]
+    public EventCallback OnLoadMessages { get; set; }
+
+    [Parameter]
+    public string? Username { get; set; } = string.Empty;
+
+    private string _newMessage = string.Empty;
+
+    private async Task SendMessageAsync()
+    {
+        Logger?.LogTrace("[{Name}]Sending message: {Message}", nameof(SendMessage), _newMessage);
+        await OnSend.InvokeAsync(_newMessage);
+        _newMessage = string.Empty;
+    }
+
+    private async Task LoadMessagesAsync()
+    {
+        await OnLoadMessages.InvokeAsync();
+    }
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            Logger?.LogTrace("[{Name}]Enter key pressed => TryLogin", nameof(SendMessage));
+            await SendMessageAsync();
+        }
+    }
+
+    private string GetLabel() => $"Type a message to {Username ?? string.Empty}";
+}

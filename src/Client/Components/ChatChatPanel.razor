@@ -1,0 +1,106 @@
+﻿@using Chat.Client.Services
+@using Chat.Shared.Dtos
+@using Chat.Shared.Models
+@using Chat.Client.Components
+@inherits LoggableComponent
+@implements IDisposable
+<div class="chat-panel">
+    @if (SelectedUser == null)
+    {
+        <div class="d-flex align-center justify-center" style="height: 100%;">
+            <MudText Typo="Typo.h6" Class="mud-text-disabled">
+                Select a user to start chatting
+            </MudText>
+        </div>
+    }
+    else
+    {
+
+
+        <div class="message-list" @ref="_messageListRef">
+            @foreach (var message in Messages)
+            {
+                <div class="d-flex flex-column  @(message.SenderId == CurrentUser?.Id ? "align-end" : "align-start")">
+                    <div class="message-bubble @(message.SenderId == CurrentUser?.Id ? "message-sent" : "message-received")">
+                        @message.Content
+                    </div>
+                    <div class="message-time">
+                        @message.Timestamp.ToLocalTime().ToString("g")
+                    </div>
+                </div>
+            }
+
+            @if (!Messages.Any())
+            {
+                <MudText Typo="Typo.body2" Class="mud-text-disabled text-center mt-4">
+                    No messages yet. Start the conversation!
+                </MudText>
+            }
+        </div>
+
+        <CascadingValue Value="OnSend" Name="OnSend">
+            <CascadingValue Value="OnLoadMessages" Name="OnLoadMessages">
+                <SendMessage Username="@SelectedUser.Username" />
+            </CascadingValue>
+        </CascadingValue>
+    }
+</div>
+
+@code {
+    private Timer? _messageRefreshTimer;
+    private ElementReference _messageListRef;
+    [Inject] IJSRuntime JS { get; set; } = null!;
+
+    [Parameter]
+    public User? SelectedUser { get; set; }
+
+    [Parameter]
+    public User? CurrentUser { get; set; }
+
+    [Parameter]
+    public List<Message> Messages { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<string> OnSend { get; set; }
+
+
+    [Parameter]
+    public EventCallback OnLoadMessages { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+
+        // Start message refresh timer
+        _messageRefreshTimer = new Timer(async _ =>
+        {
+            if (SelectedUser != null)
+            {
+                await OnLoadMessages.InvokeAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await ScrollToBottomAsync();
+    }
+    private async Task ScrollToBottomAsync()
+    {
+        if (Messages.Any())
+            try
+            {
+                Logger?.LogTrace("[{Name}]Scrolling to bottom of message list",nameof(ChatChatPanel));
+                await JS.InvokeVoidAsync("scrollToBottom", _messageListRef);
+            }
+            catch
+            {
+                // Ignore errors when JSRuntime not available
+            }
+    }
+
+    public void Dispose()
+    {
+        _messageRefreshTimer?.Dispose();
+    }
+}

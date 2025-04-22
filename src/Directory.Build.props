@@ -9,8 +9,8 @@
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <AnalysisLevel>latest</AnalysisLevel>
     <Features>strict</Features>
-
-   
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  
   </PropertyGroup>
 
 

@@ -14,6 +14,9 @@ namespace Chat.Server.data;
 /// <param name="options"></param>
 public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(options), IChatDbContext
 {
+    internal const string UserTableName = nameof(Users);
+
+    internal const string MessageTableName = nameof(Messages);
 
     /// <summary>
     /// DbSet for User entity.
@@ -37,6 +40,7 @@ public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(
         // Configure User entity
         modelBuilder.Entity<User>(entity =>
         {
+            entity.ToTable(UserTableName);
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Username).IsRequired().HasMaxLength(50);
             entity.HasIndex(e => e.Username).IsUnique();
@@ -45,10 +49,12 @@ public class ChatDbContext(DbContextOptions<ChatDbContext> options) : DbContext(
         // Configure Message entity
         modelBuilder.Entity<Message>(entity =>
         {
+            entity.ToTable(MessageTableName);
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.SenderUsername).IsRequired();
             entity.Property(e => e.ReceiverUsername).IsRequired();
         });
     }
+        
 }

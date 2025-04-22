@@ -1,0 +1,9 @@
+﻿@using Chat.Client.Services
+
+
+@code {
+    [Inject] IChatLoggerService? LogService { get; set; }
+    protected ILogger? Logger => LogService?.Logger;
+
+   
+}

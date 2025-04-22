@@ -1,70 +1,44 @@
 ﻿@page "/login"
 @using Chat.Client.Services
+@using Chat.Shared.Models
+@using Chat.Client.Components
+@inherits LoggableComponent
 @inject NavigationManager NavigationManager
 @inject IUserService UserService
 
-<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height: calc(100vh - 64px);">
-    <MudPaper Elevation="3" Class="pa-8" Style="width: 100%;">
-        <MudText Typo="Typo.h5" Class="mb-4 text-center">Welcome to Simple Chat</MudText>
-
-        <MudText Typo="Typo.body1" Class="mb-4">Enter your username to start chatting:</MudText>
-
-        <MudTextField T="string"
-                      @bind-Value="Username"
-                      Label="Username"
-                      Variant="Variant.Outlined"
-                      Adornment="Adornment.End"
-                      AdornmentIcon="@Icons.Material.Filled.Person"
-                      Class="mb-4"
-                      Placeholder="Enter a username"
-                      Required="true"
-                      RequiredError="Username is required"
-                      Immediate="true"
-                      Error="_hasError"
-                      ErrorText="Username is required"
-                      @onkeyup="HandleKeyPress" />
-
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   FullWidth="true"
-                   OnClick="TryLogin"
-                   Disabled="string.IsNullOrWhiteSpace(Username)">
-            Enter Chat
-        </MudButton>
-    </MudPaper>
-</MudContainer>
+<LoginForm OnTryLogin="TryLogin" />
 
 @code {
-    private string Username { get; set; } = string.Empty;
-    private bool _hasError;
 
     protected override async Task OnInitializedAsync()
     {
-        var currentUser = await UserService.GetCurrentUserAsync();
 
-        if (currentUser != null)
+        UserService.OnUserChanged += HandleUserChanged;
+
+        if (UserService.AuthorizeAutoLogin && await UserService.GetCurrentUserAsync() is not null)
         {
+            Logger?.LogTrace("[{Name}]User already logged in. Redirecting to home page", nameof(Login));
             NavigationManager.NavigateTo("/");
         }
     }
-
-    private async Task TryLogin()
+    private void HandleUserChanged(User? user)
     {
-        if (string.IsNullOrWhiteSpace(Username))
+        Logger?.LogTrace("[{Name}]User changed ? ", nameof(Login));
+        if (user is not null)
         {
-            _hasError = true;
+            Logger?.LogInformation("[{Name}]User changed. New user: {User}. Redirecting to home page", nameof(Login), user);
+            NavigationManager.NavigateTo("/");
             return;
         }
-
-        await UserService.LoginAsync(Username);
-        NavigationManager.NavigateTo("/");
+        InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleKeyPress(KeyboardEventArgs e)
+    private async Task TryLogin(string username)
     {
-        if (e.Key == "Enter")
-        {
-            await TryLogin();
-        }
+        Logger?.LogTrace("[{Name}]Trying to login with username: {Username}", nameof(Login), username);
+        await UserService.LoginAsync(username);
+
     }
+
+
 }

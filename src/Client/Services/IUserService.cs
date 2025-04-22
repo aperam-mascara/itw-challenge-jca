@@ -9,6 +9,11 @@ namespace Chat.Client.Services;
 public interface IUserService
 {
     /// <summary>
+    /// Authorize Auto Login
+    /// </summary>
+    public bool AuthorizeAutoLogin { get; }
+
+    /// <summary>
     /// Event triggered when the current user changes.
     /// </summary>
     event Action<User?>? OnUserChanged;
@@ -25,7 +30,7 @@ public interface IUserService
     /// </summary>
     /// <param name="username"></param>
     /// <returns>User logged in</returns>
-    Task<User> LoginAsync(string username);
+    Task<bool> LoginAsync(string username);
 
     /// <summary>
     /// Gets the stored username asynchronously.

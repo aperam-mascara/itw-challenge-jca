@@ -1,4 +1,5 @@
-﻿@using Chat.Client.Services
+﻿@using Chat.Client.Components
+@using Chat.Client.Services
 @using Chat.Shared.Models
 @inherits LayoutComponentBase
 @implements IDisposable
@@ -32,6 +33,7 @@
         else
         {
 
+
             @Body
         }
     </MudMainContent>
@@ -46,6 +48,9 @@
     [Inject] private IHealthService HealthService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
+
+    
+
     protected override void OnInitialized()
     {
         UserService.OnUserChanged += HandleUserChanged;
@@ -55,7 +60,10 @@
         {
             await CheckHealthAsync();
             await InvokeAsync(StateHasChanged);
+             
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+
+
     }
 
     private async Task CheckHealthAsync()
@@ -79,6 +87,9 @@
         await UserService.LogoutAsync();
        
     }
+
+
+
     public void Dispose()
     {
         _healthCheckTimer?.Dispose();

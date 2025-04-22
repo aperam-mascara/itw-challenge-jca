@@ -5,10 +5,14 @@
     <UserSecretsId>a26596e7-c1f9-4b41-9d9f-835a3c0478aa</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-  </PropertyGroup>
 
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Chat.Server.Tests" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -16,12 +20,14 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.21.2" />
    
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+   
+    <PackageReference Include="Scalar.AspNetCore" Version="2.1.17" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Chat.Routes\Chat.Routes.csproj" />
-    <ProjectReference Include="..\EFUtilities\EFUtilities.csproj" />
-    <ProjectReference Include="..\Shared\Chat.Shared.csproj" />
+    <ProjectReference Include="..\Utilities\EFUtilities\EFUtilities.csproj" />
+    <ProjectReference Include="..\Shared\Chat.Routes\Chat.Routes.csproj" />
+    <ProjectReference Include="..\Shared\Chat.Shared\Chat.Shared.csproj" />
   </ItemGroup>
 
 

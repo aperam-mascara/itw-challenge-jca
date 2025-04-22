@@ -1,0 +1,96 @@
+﻿@using Chat.Client.Services
+@using Chat.Shared.Dtos
+@using Chat.Shared.Models
+@using Chat.Client.Components
+@inherits LoggableComponent
+@implements IDisposable
+<div class="users-panel">
+    @if (CurrentUser is null)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+
+
+        <MudList T="User" Class="py-0" SelectionMode="SelectionMode.SingleSelection" @bind-SelectedValue="_selectedUser">
+            <MudListSubheader>
+                <div class="d-flex align-center">
+                    <MudText Typo="Typo.subtitle1">Users</MudText>
+                    <MudSpacer />
+                    <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                    Size="Size.Small"
+                    OnClick="LoadUsersAsync" />
+                </div>
+            </MudListSubheader>
+
+            @foreach (var user in Users.Where(u => u.Id != CurrentUser?.Id))
+            {
+                <MudListItem Class="@(user == _selectedUser ? "user-item user-item-active" : "user-item")"
+                OnClick="() => SelectUserAsync(user)">
+                    <div class="d-flex align-center">
+                        <MudAvatar Color="Color.Secondary" Size="Size.Small" Class="mr-3">
+                            @user.Username[0]
+                        </MudAvatar>
+                        <MudText>@user.Username</MudText>
+                    </div>
+                </MudListItem>
+            }
+
+            @if (Users.Count <= 1)
+            {
+                <MudListItem>
+                    <MudText Typo="Typo.body2" Class="mud-text-disabled">
+                        No other users available
+                    </MudText>
+                </MudListItem>
+            }
+        </MudList>
+    }
+</div>
+
+@code {
+    private User? _selectedUser;
+    private Timer? _userRefreshTimer;
+
+    
+
+    [Parameter] public User? CurrentUser { get; set; }
+    [Parameter] public List<User> Users { get; set; } = new();
+
+
+
+    [Parameter]
+    public EventCallback OnLoadUser { get; set; }
+    private async Task LoadUsersAsync()
+    {
+        Logger?.LogTrace("[{Name}]Loading users", nameof(LoadUsersAsync));
+        await OnLoadUser.InvokeAsync();
+    }
+
+    [Parameter]
+    public EventCallback<User> OnUserSelected { get; set; }
+    private async Task SelectUserAsync(User user)
+    {
+        Logger?.LogTrace("[{Name}]User selected: {User}", nameof(SelectUserAsync), user.Username);
+        _selectedUser = user;
+        await OnUserSelected.InvokeAsync(user);
+    }
+
+    protected override void OnInitialized()
+    {
+        // Start message refresh timer
+        _userRefreshTimer = new Timer(async _ =>
+        {
+
+            await LoadUsersAsync();
+            await InvokeAsync(StateHasChanged);
+
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+    }
+
+    public void Dispose()
+    {
+        _userRefreshTimer?.Dispose();
+    }
+}
