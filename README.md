@@ -110,7 +110,7 @@ Please refer to the [RULES.md](RULES.md) file for the challenge requirements.
 
 >-For debugging , set in Visual Sudio Configure Mutlple Project startup
 
-![Startup]( images\docker_multiple_startup.png )
+![Startup]( images/docker_multiple_startup.png )
 
 >- Ensure , in client  appsettings API_URL  set to https://localhost:8044/ (port 8044 is defined in [docker-compose-override](src\docker-compose.override.yml))
 >- Lauch Debug in Visual Studio
@@ -119,7 +119,7 @@ Please refer to the [RULES.md](RULES.md) file for the challenge requirements.
 
 - Set multiple startup projects to debug the applications with Chat.Client and Chat.Server services. This will launch the client and server applications simultaneously.
 
-![Startup](images\multiple_startup.png )
+![Startup](images/multiple_startup.png )
 
 >- Ensure , in client  appsettings API_URL  set to https://localhost:8044/ (port 8044 is definied in [launchSettings](src/Server/Properties/launchSettings.json))
 >- Start a PostgreSQL container , in terminal type `docker run --name chatdb -p 5432:5432  -e POSTGRES_USER=chatuser -e POSTGRES_PASSWORD=chatpassword -d postgres:17.4` command.
