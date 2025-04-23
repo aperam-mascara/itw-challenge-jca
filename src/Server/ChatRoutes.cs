@@ -1,48 +1,8 @@
 ﻿using Chat.Shared.data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Chat.Shared.Models;
 using Chat.Shared.Dtos;
-using Microsoft.Extensions.Options;
-namespace Chat.Routes;
-
-/// <summary>
-/// Options for configuring chat routes.
-/// </summary>
-internal sealed class ChatRouteOptions
-{
-    /// <summary>
-    /// The default section name for chat routes.
-    /// </summary>
-    public const string SECTION_NAME = "Chat";
-
-    /// <summary>
-    /// The default path for chat routes.
-    /// </summary>
-    public string? BasePath { get; set; }
-
-
-    /// <summary>
-    /// The OpenApiTag .
-    /// </summary>
-    public string? OpenApiTag { get; set; }
-
-    /// <summary>
-    /// The path for user routes.
-    /// </summary>
-
-    public string? UserPath { get; set; }
-
-    /// <summary>
-    /// The path for message routes.
-    /// </summary>
-
-    public string? MessagePath { get; set; }
-}
-
+using Chat.Shared.Models;
+using Microsoft.EntityFrameworkCore;
+namespace Chat.Server;
 
 /// <summary>
 /// A set of extension methods for configuring chat routes.
@@ -54,21 +14,15 @@ internal static class HostExtensions
     /// </summary>
     /// <typeparam name="TDbContext"></typeparam>
     /// <param name="app"></param>
-    /// <param name="options"></param>
     /// <returns></returns>
-    public static IHost ConfigureChatRoutes<TDbContext>(this WebApplication app,Action<ChatRouteOptions>? options=default) where TDbContext : DbContext,IChatDbContext
+    internal static WebApplication ConfigureChatRoutes<TDbContext>(this WebApplication app) where TDbContext : DbContext, IChatDbContext
     {
-        var opt=app.Services.GetRequiredService<IOptions<ChatRouteOptions>>().Value;
-        options?.Invoke(opt);
+        
 
-        var chatPath = opt.BasePath ?? "chat";
-        var userPath = opt.UserPath ?? "users";
-        var messagePath = opt.MessagePath ?? "messages";
-
-        var chat = app.MapGroup(chatPath).WithTags(opt.OpenApiTag ?? ChatRouteOptions.SECTION_NAME);
+        var chat = app.MapGroup("chat").WithTags("chat");
 
         //Get All Users
-        chat.MapGet("/"+userPath, async (TDbContext dbContext) =>
+        chat.MapGet("/users" , async (TDbContext dbContext) =>
         {
             var users = await dbContext.Users.ToListAsync();
             return Results.Ok(users);
@@ -76,7 +30,7 @@ internal static class HostExtensions
 
 
         //Get User by Id, add it if not exists 
-        chat.MapGet("/"+userPath+"/{username}", async (string username, TDbContext dbContext) =>
+        chat.MapGet("/users/{username}", async (string username, TDbContext dbContext) =>
         {
             var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Username == username);
 
@@ -98,7 +52,7 @@ internal static class HostExtensions
         });
 
         //Get Messages send or received by a user and another user
-        chat.MapGet("/"+messagePath+"/{senderId:int}/{receiverId:int}", async (int senderId, int receiverId, TDbContext dbContext) =>
+        chat.MapGet("/messages/{senderId:int}/{receiverId:int}", async (int senderId, int receiverId, TDbContext dbContext) =>
         {
             var messages = await dbContext.Messages
                 .Where(m =>
@@ -111,7 +65,7 @@ internal static class HostExtensions
         });
 
         //Send a message from one user to another
-        chat.MapPost("/"+messagePath, async (SendMessageDto messageDto, TDbContext dbContext) =>
+        chat.MapPost("/messages", async (SendMessageDto messageDto, TDbContext dbContext) =>
         {
             var sender = await dbContext.Users.FindAsync(messageDto.SenderId);
             var receiver = await dbContext.Users.FindAsync(messageDto.ReceiverId);
@@ -134,7 +88,7 @@ internal static class HostExtensions
             dbContext.Messages.Add(message);
             await dbContext.SaveChangesAsync();
 
-            return Results.Created($"/"+messagePath+"/{message.Id}", message);
+            return Results.Created($"/messages/{message.Id}", message);
         });
         return app;
     }

@@ -11,16 +11,17 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Directory.Build.props","./"]
+COPY ["Directory.Build.props", "./"]
 COPY ["Server/Chat.Server.csproj", "Server/"]
+COPY ["Client/Chat.Client.csproj", "Client/"]
 COPY ["Shared/Chat.Shared.csproj", "Shared/"]
-COPY ["Chat.Routes/Chat.Routes.csproj", "Chat.Routes/"]
-COPY ["EFUtilities/EFUtilities.csproj", "EFUtilities/"]
 
 RUN dotnet restore "./Server/Chat.Server.csproj"
 COPY . .
 WORKDIR "/src/Server"
 RUN dotnet build "./Chat.Server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish

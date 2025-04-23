@@ -1,4 +1,5 @@
-﻿using Chat.Server.data;
+﻿using Chat.Server.Data;
+using Chat.Server.Tests.fixtures;
 using Chat.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using Shouldly;
@@ -12,22 +13,16 @@ namespace Chat.Server.Tests;
 /// <summary>
 /// Tests for ChatDbContext.
 /// </summary>
-public class ChatDbContextTests : IClassFixture<PostgreSQLFixture<ChatDbContext>>
+/// <remarks>
+/// Constructor for ChatDbContextTests.
+/// </remarks>
+/// <param name="fixture"></param>
+/// <param name="output"></param>
+public class ChatDbContextTests(PostgresContainerFixture<ChatDbContext> fixture, ITestOutputHelper output) : LoggableClassFixture<PostgresContainerFixture<ChatDbContext>>(fixture, output)
 {
-    readonly PostgreSQLFixture<ChatDbContext> fixture;
+    private readonly PostgresContainerFixture<ChatDbContext> fixture = fixture;
 
     private readonly IImmutableList<string> TableNames = [ChatDbContext.UserTableName, ChatDbContext.MessageTableName];
-
-    /// <summary>
-    /// Constructor for ChatDbContextTests.
-    /// </summary>
-    /// <param name="fixture"></param>
-    /// <param name="output"></param>
-    public ChatDbContextTests(PostgreSQLFixture<ChatDbContext> fixture, ITestOutputHelper output)
-    {
-        this.fixture = fixture;
-        this.fixture.OutputHelper = output;
-    }
 
 
     /// <summary>
@@ -38,7 +33,7 @@ public class ChatDbContextTests : IClassFixture<PostgreSQLFixture<ChatDbContext>
     public async Task CreateUser_ShouldAddUserToDatabase()
     {
         //Cleanup
-        var context = await fixture.ContextAsync(TableNames);
+        using var context = await fixture.ContextAndResetTablesAsync(TableNames,Logger);
 
         // Arrange
         var username = "testuser";
@@ -64,7 +59,7 @@ public class ChatDbContextTests : IClassFixture<PostgreSQLFixture<ChatDbContext>
     public async Task CreateMessage_ShouldAddMessageToDatabase()
     {
         //Cleanup
-        var context = await fixture.ContextAsync(TableNames);
+        using var context = await fixture.ContextAndResetTablesAsync(TableNames,Logger);
 
 
         // Arrange
@@ -103,7 +98,7 @@ public class ChatDbContextTests : IClassFixture<PostgreSQLFixture<ChatDbContext>
     public async Task GetUserMessages_ShouldReturnMessagesForUsers()
     {
         //Cleanup
-        var context = await fixture.ContextAsync(TableNames);
+        using var context = await fixture.ContextAndResetTablesAsync(TableNames,Logger);
 
         // Arrange
 
@@ -161,7 +156,7 @@ public class ChatDbContextTests : IClassFixture<PostgreSQLFixture<ChatDbContext>
     public async Task UsernameShouldBeUnique()
     {
         //Cleanup
-        var context = await fixture.ContextAsync(TableNames);
+        using var context = await fixture.ContextAndResetTablesAsync(TableNames, Logger);
 
         // Arrange
 

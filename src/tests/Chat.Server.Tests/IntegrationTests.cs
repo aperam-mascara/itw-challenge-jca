@@ -1,20 +1,22 @@
-﻿using Chat.Server.data;
+﻿using Chat.Server.Tests.fixtures;
 using Chat.Shared.Dtos;
 using Chat.Shared.Models;
+using Serilog.Core;
 using Shouldly;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 namespace Chat.Server.Tests
 {
     /// <summary>
     /// Create Integration Tests
     /// </summary>
-    /// <param name="factory"></param>
+    /// <remarks>
+    /// Integration Tests
+    /// </remarks>
+    /// <param name="appfactory"></param>
     /// <param name="output"></param>
-    public class IntegrationTests(WebAppFactory factory, ITestOutputHelper output) : WebClassFixture(factory, output)
+    public class IntegrationTests(WebAppFactory appfactory, ITestOutputHelper output) : WebApplicationClassFixture<WebAppFactory,Program>(appfactory, output)
     {
         /// <summary>
         /// Health Check of the server must be Ok
@@ -23,7 +25,6 @@ namespace Chat.Server.Tests
         [Fact]
         public async Task HealthCheck_ShouldReturnHealthy()
         {
-            
             // Act
             var response = await HttpClient.GetAsync("/health");
 
@@ -38,6 +39,7 @@ namespace Chat.Server.Tests
         [Fact]
         public async Task GetUsers_ShouldReturnUsersList()
         {
+            
             // Act
             var response = await HttpClient.GetAsync("/chat/users");
             var users = await response.Content.ReadFromJsonAsync<List<User>>();
@@ -94,7 +96,7 @@ namespace Chat.Server.Tests
             message.ShouldNotBeNull();
             message.Content.ShouldBe(messageDto.Content);
 
-            
+
         }
 
 
@@ -135,9 +137,9 @@ namespace Chat.Server.Tests
         {
             var response = await HttpClient.GetAsync($"/chat/users/{username}");
             response.StatusCode.ShouldBe(HttpStatusCode.OK);
-            User? user= await response.Content.ReadFromJsonAsync<User>();
+            User? user = await response.Content.ReadFromJsonAsync<User>();
 
-            return user ?? throw new ApplicationException("User cannot be deserialized from the content of http request"); 
+            return user ?? throw new ApplicationException("User cannot be deserialized from the content of http request");
         }
     }
 }

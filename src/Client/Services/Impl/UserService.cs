@@ -35,23 +35,24 @@ internal class UserService(HttpClient httpClient,ILoggerProvider loggerProvider,
     /// <returns></returns>
     public async Task<User?> GetCurrentUserAsync()
     {
-        Logger.LogTrace("Try get Current user");
+        Logger.LogInformation("Try get Current user");
         if (_currentUser != null)
         {
-            Logger.LogTrace("The current user is {_currentUser.Username}", _currentUser.Username);
+            Logger.LogInformation("The current user is {_currentUser.Username}", _currentUser.Username);
             return _currentUser;
         }
 
-        Logger.LogTrace("Try get user from local storage");
+        Logger.LogInformation("Try get user from local storage");
         var username = await GetStoredUsernameAsync();
 
         if (string.IsNullOrEmpty(username))
         {
-            Logger.LogTrace("No user ins local storage. Abort...");
+            Logger.LogInformation("No user ins local storage. Abort...");
             return null;
         }
 
-        await LoginAsync(username);
+        if(AuthorizeAutoLogin)
+            await LoginAsync(username);
         return _currentUser;
     }
 
@@ -64,7 +65,7 @@ internal class UserService(HttpClient httpClient,ILoggerProvider loggerProvider,
     /// <exception cref="Exception"></exception>
     public async Task<bool> LoginAsync(string username)
     {
-        Logger.LogTrace("Try {username} logged in",username);
+        Logger.LogInformation("Try {username} logged in",username);
         try
         {
             var response = await _httpClient.GetAsync($"/chat/users/{username}");
@@ -76,10 +77,10 @@ internal class UserService(HttpClient httpClient,ILoggerProvider loggerProvider,
             {
                 await StoreUsernameAsync(_currentUser.Username);
                 OnUserChanged?.Invoke(_currentUser);
-                Logger.LogTrace("{username} is logged on { }",username, DateTime.UtcNow.ToString());
+                Logger.LogInformation("{username} is logged on { }",username, DateTime.UtcNow.ToString());
                 return true;
             }
-            Logger.LogTrace("{username} cannot log in", username);
+            Logger.LogInformation("{username} cannot log in", username);
             return false;
         }
         catch (Exception ex)
@@ -95,11 +96,11 @@ internal class UserService(HttpClient httpClient,ILoggerProvider loggerProvider,
     /// <returns></returns>
     public async Task<List<User>> GetUsersAsync()
     {
-        Logger.LogTrace("Try get all registered users");
+        Logger.LogInformation("Try get all registered users");
         try
         {
             var users = await _httpClient.GetFromJsonAsync<List<User>>("/chat/users") ?? [];
-            Logger.LogTrace("All users are retrieved");
+            Logger.LogInformation("All users are retrieved");
             return users;
         }
         catch (Exception ex)

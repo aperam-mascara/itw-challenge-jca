@@ -1,4 +1,4 @@
-﻿@inherits LoggableComponent
+﻿
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center justify-center" Style="height: calc(100vh - 64px);">
     <MudPaper Elevation="3" Class="pa-8" Style="width: 100%;">
@@ -19,18 +19,21 @@
         Immediate="true"
         Error="_hasError"
         ErrorText="Username is required"
-        @onkeyup="HandleKeyPress" />
+       />
 
         <MudButton Variant="Variant.Filled"
         Color="Color.Primary"
         FullWidth="true"
         OnClick="TryLogin"
+        
         Disabled="string.IsNullOrWhiteSpace(Username)">
             @ButtonEnterTitle
         </MudButton>
     </MudPaper>
 </MudContainer>
 @code {
+
+    [Inject] ILogger<LoginForm> Logger { get; set; } = null!;
 
     [Parameter]
     public EventCallback<string> OnTryLogin { get; set; }
@@ -50,21 +53,14 @@
     {
         if (string.IsNullOrWhiteSpace(Username))
         {
-           
-            Logger?.LogWarning("[{Name}]Username is empty. Abort Login",nameof(LoginForm));
+
+            Logger.LogWarning("[{Name}]Username is empty. Abort Login",nameof(LoginForm));
             _hasError = true;
             return;
         }
-        Logger?.LogTrace("[{Name}Username is not empty. Proceeding with login", nameof(LoginForm));
+        Logger.LogInformation("[{Name}Username is not empty. Proceeding with login", nameof(LoginForm));
         await OnTryLogin.InvokeAsync(Username);
     }
 
-    private async Task HandleKeyPress(KeyboardEventArgs e)
-    {
-        if (e.Key == "Enter")
-        {
-            Logger?.LogTrace("[{Name}Enter key pressed => TryLogin", nameof(LoginForm));
-            await TryLogin();
-        }
-    }
+    
 }

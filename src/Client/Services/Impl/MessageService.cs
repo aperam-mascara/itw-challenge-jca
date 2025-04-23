@@ -21,11 +21,11 @@ internal class MessageService(HttpClient httpClient,ILogger<MessageService> logg
     /// <returns></returns>
     public async Task<List<Message>> GetMessagesAsync(int senderId, int receiverId)
     {
-        Logger.LogTrace("Try to get message between user:{senderId} and user:{receiverId}",senderId,receiverId);
+        Logger.LogInformation("Try to get message between user:{senderId} and user:{receiverId}",senderId,receiverId);
         try
         {
             var messages = await _httpClient.GetFromJsonAsync<List<Message>>($"/chat/messages/{senderId}/{receiverId}");
-            Logger.LogTrace("All messages are retrieved");
+            Logger.LogInformation("All messages are retrieved");
             return messages ?? [];
         }
         catch (Exception ex)
@@ -35,18 +35,23 @@ internal class MessageService(HttpClient httpClient,ILogger<MessageService> logg
         }
     }
 
+    /// <summary>
+    /// Sends a message from one user to another.
+    /// </summary>
+    /// <param name="message"></param>
+    /// <returns></returns>
     public async Task<bool> SendMessageAsync(SendMessageDto message)
     {
-        Logger.LogTrace($"{message.SenderId} try to send a message to {message.ReceiverId}",message.SenderId,message.ReceiverId);
+        Logger.LogInformation("{message.SenderId} try to send a message to {message.ReceiverId}",message.SenderId,message.ReceiverId);
         try
         {
             var response = await _httpClient.PostAsJsonAsync("/chat/messages", message);
-            Logger.LogTrace("Message {message.Content} was sended to {message.ReceiverId}", message.Content, message.ReceiverId);
+            Logger.LogInformation("Message {message.Content} was sended to {message.ReceiverId}", message.Content, message.ReceiverId);
             return response.IsSuccessStatusCode;
         }
         catch (Exception ex)
         {
-            Logger.LogWarning($"Error while sending messages \n\t\t{ex.Message}");
+            Logger.LogWarning("Error while sending messages \n\t\t{ex.Message}",ex.Message);
             return false;
         }
     }

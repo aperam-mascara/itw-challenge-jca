@@ -2,13 +2,14 @@
 @using Chat.Client.Services
 @using Chat.Shared.Models
 @using Chat.Client.Components
-@inherits LoggableComponent
+
 @inject NavigationManager NavigationManager
 @inject IUserService UserService
 
 <LoginForm OnTryLogin="TryLogin" />
 
 @code {
+    [Inject] ILogger<Login> Logger { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
@@ -17,16 +18,16 @@
 
         if (UserService.AuthorizeAutoLogin && await UserService.GetCurrentUserAsync() is not null)
         {
-            Logger?.LogTrace("[{Name}]User already logged in. Redirecting to home page", nameof(Login));
+            Logger.LogInformation("[{Name}]User already logged in. Redirecting to home page", nameof(Login));
             NavigationManager.NavigateTo("/");
         }
     }
     private void HandleUserChanged(User? user)
     {
-        Logger?.LogTrace("[{Name}]User changed ? ", nameof(Login));
+        Logger.LogInformation("[{Name}]User changed ? ", nameof(Login));
         if (user is not null)
         {
-            Logger?.LogInformation("[{Name}]User changed. New user: {User}. Redirecting to home page", nameof(Login), user);
+            Logger.LogInformation("[{Name}]User changed. New user: {User}. Redirecting to home page", nameof(Login), user);
             NavigationManager.NavigateTo("/");
             return;
         }
@@ -35,7 +36,7 @@
 
     private async Task TryLogin(string username)
     {
-        Logger?.LogTrace("[{Name}]Trying to login with username: {Username}", nameof(Login), username);
+        Logger.LogInformation("[{Name}]Trying to login with username: {Username}", nameof(Login), username);
         await UserService.LoginAsync(username);
 
     }

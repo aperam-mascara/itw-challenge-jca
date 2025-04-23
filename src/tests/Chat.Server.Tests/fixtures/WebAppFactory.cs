@@ -1,22 +1,20 @@
-﻿using Chat.Server.data;
+﻿using Chat.Server.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
-using Xunit.Abstractions;
 
-namespace Chat.Server.Tests;
+namespace Chat.Server.Tests.fixtures;
 
 
 
 /// <summary>
 /// Web Application Factory for testing
 /// </summary>
-public class WebAppFactory(): WebApplicationFactory<Program>, IAsyncLifetime
+public class WebAppFactory: WebApplicationFactory<Program>, IAsyncLifetime
 {
 
     private readonly PostgreSqlContainer _dbContainer = new PostgreSqlBuilder()
@@ -27,26 +25,16 @@ public class WebAppFactory(): WebApplicationFactory<Program>, IAsyncLifetime
         .Build();
 
     /// <summary>
-    /// Test Output Helper
+    /// Web Application Factory for testing
     /// </summary>
-    private ITestOutputHelper? _output;
-
-    /// <summary>
-    /// Test Output Helper
-    /// </summary>
-    public ITestOutputHelper OutputHelper
+    public WebAppFactory()
     {
-        get
-        {
-            return _output!;
-        }
-        set
-        {
-            ArgumentNullException.ThrowIfNull(value, nameof(OutputHelper));
-            _output = value;
-        }
+        
+
     }
 
+
+    
 
 
 
@@ -64,6 +52,7 @@ public class WebAppFactory(): WebApplicationFactory<Program>, IAsyncLifetime
 
         builder
         .UseConfiguration(configuration)
+        
         .ConfigureTestServices(services =>
         {
             
@@ -75,33 +64,24 @@ public class WebAppFactory(): WebApplicationFactory<Program>, IAsyncLifetime
 
             services.AddDbContext<ChatDbContext>(options =>
             {
-                options.LogTo(m => OutputHelper.WriteLine(m), LogLevel.Information);
                 
                 options.UseNpgsql(_dbContainer.GetConnectionString());
             });
-           /* var serviceProvider = services.BuildServiceProvider();
-            using (var scope = serviceProvider.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<ChatDbContext>();
-
-                // Ensure the database is created
-                dbContext.Database.EnsureCreated();
-            }*/
-        }).ConfigureLogging(loggingBuilder =>
-        {
-            loggingBuilder.AddXUnitLogging(configuration, () => OutputHelper);
-        });
+           
+        })
+        
+        ;
     }
     #region IAsyncLifetime
     /// <summary>
-    /// 
+    /// Start the database container before running tests.
     /// </summary>
     /// <returns></returns>
     public Task InitializeAsync()
     =>_dbContainer.StartAsync();
 
     /// <summary>
-    /// 
+    /// Stop the database container after running tests.
     /// </summary>
     /// <returns></returns>
     public new Task DisposeAsync()

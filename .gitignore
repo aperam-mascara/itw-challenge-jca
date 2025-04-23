@@ -400,3 +400,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 chat-db-data/
+chat-dev-db-data/

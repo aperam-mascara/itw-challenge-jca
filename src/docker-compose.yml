@@ -1,22 +1,37 @@
 services:
   chat.server:
     image: ${DOCKER_REGISTRY-}chatserver
+    container_name: chatserver
     build:
       context: .
       dockerfile: Server/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=chatdb;Database=chatdb;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}
+    ports:
+      - "8080:80"
+      - "8043:443"
     depends_on:
-      - chatdb
+      chatdb:
+        condition: service_healthy
       
 
 
   chatdb:
     image: postgres:17.4
+    container_name: chatdb
+    restart: always
     ports:
       - 5432:5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: chatdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - ./chat-db-data:/var/lib/postgresql/data/
 

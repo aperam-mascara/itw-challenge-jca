@@ -9,12 +9,12 @@
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}</DockerServiceUrl>
     <DockerServiceName>chat.server</DockerServiceName>
     <DockerComposeEnvFilePath>./.env</DockerComposeEnvFilePath>
-    <DockerComposeProjectName>chat_application</DockerComposeProjectName>
-
+    <DockerComposeProjectName>chat_application_dev</DockerComposeProjectName>
+    <DockerComposeUpArguments>--force-recreate</DockerComposeUpArguments>
   </PropertyGroup>
   <ItemGroup>
     <None Include=".env" />
-    <None Include="docker-compose.override.yml"  Condition="'$(Configuration)'=='Debug'">
+    <None Include="docker-compose.override.yml" >
       <DependentUpon>docker-compose.yml</DependentUpon>
     </None>
    

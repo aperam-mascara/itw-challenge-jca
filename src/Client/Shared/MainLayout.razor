@@ -2,7 +2,6 @@
 @using Chat.Client.Services
 @using Chat.Shared.Models
 @inherits LayoutComponentBase
-@implements IDisposable
 
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Primary">
@@ -22,54 +21,28 @@
         }
     </MudAppBar>
     <MudMainContent>
-        @if (!_isHealthy)
-        {
-            <div class="server-unavailable">
-                <MudAlert Severity="Severity.Error" Class="my-2">
-                    Server is currently unavailable. Retrying connection...
-                </MudAlert>
-            </div>
-        }
-        else
-        {
-
-
-            @Body
-        }
+        @Body
     </MudMainContent>
 </MudLayout>
 
 @code {
     private User? _currentUser;
-    private bool _isHealthy = true;
-    private Timer? _healthCheckTimer;
+
 
     [Inject] private IUserService UserService { get; set; } = null!;
-    [Inject] private IHealthService HealthService { get; set; } = null!;
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
 
-    
+
 
     protected override void OnInitialized()
     {
         UserService.OnUserChanged += HandleUserChanged;
 
-
-        _healthCheckTimer = new Timer(async _ =>
-        {
-            await CheckHealthAsync();
-            await InvokeAsync(StateHasChanged);
-             
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
-
-
     }
 
-    private async Task CheckHealthAsync()
-    {
-        _isHealthy = await HealthService.IsHealthyAsync();
-    }
+
+
 
     private void HandleUserChanged(User? user)
     {
@@ -85,13 +58,6 @@
     private async Task LogoutAsync()
     {
         await UserService.LogoutAsync();
-       
-    }
 
-
-
-    public void Dispose()
-    {
-        _healthCheckTimer?.Dispose();
     }
 }

@@ -1,4 +1,4 @@
-﻿@inherits LoggableComponent
+﻿
 
 <div class="message-input">
     <MudStack Row="true">
@@ -21,6 +21,8 @@
 
 @code {
 
+    [Inject] ILogger<SendMessage> Logger { get; set; } = null!;
+
     [CascadingParameter(Name = "OnSend")]
     public EventCallback<string> OnSend { get; set; }
 
@@ -35,7 +37,7 @@
 
     private async Task SendMessageAsync()
     {
-        Logger?.LogTrace("[{Name}]Sending message: {Message}", nameof(SendMessage), _newMessage);
+        Logger.LogInformation("[{Name}]Sending message: {Message}", nameof(SendMessage), _newMessage);
         await OnSend.InvokeAsync(_newMessage);
         _newMessage = string.Empty;
     }
@@ -48,7 +50,7 @@
     {
         if (e.Key == "Enter")
         {
-            Logger?.LogTrace("[{Name}]Enter key pressed => TryLogin", nameof(SendMessage));
+            Logger.LogInformation("[{Name}]Enter key pressed => TryLogin", nameof(SendMessage));
             await SendMessageAsync();
         }
     }

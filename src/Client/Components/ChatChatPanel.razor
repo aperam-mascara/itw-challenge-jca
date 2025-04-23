@@ -2,7 +2,7 @@
 @using Chat.Shared.Dtos
 @using Chat.Shared.Models
 @using Chat.Client.Components
-@inherits LoggableComponent
+
 @implements IDisposable
 <div class="chat-panel">
     @if (SelectedUser == null)
@@ -50,7 +50,7 @@
     private Timer? _messageRefreshTimer;
     private ElementReference _messageListRef;
     [Inject] IJSRuntime JS { get; set; } = null!;
-
+    [Inject] ILogger<ChatChatPanel> Logger { get; set; } = null!;
     [Parameter]
     public User? SelectedUser { get; set; }
 
@@ -90,7 +90,6 @@
         if (Messages.Any())
             try
             {
-                Logger?.LogTrace("[{Name}]Scrolling to bottom of message list",nameof(ChatChatPanel));
                 await JS.InvokeVoidAsync("scrollToBottom", _messageListRef);
             }
             catch

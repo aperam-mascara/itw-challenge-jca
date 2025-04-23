@@ -2,7 +2,7 @@
 using Chat.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Chat.Server.data;
+namespace Chat.Server.Data;
 
 
 /// <summary>
