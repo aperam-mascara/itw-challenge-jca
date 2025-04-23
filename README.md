@@ -32,7 +32,6 @@ Please refer to the [RULES.md](RULES.md) file for the challenge requirements.
 
 ### Utilities projetcs
 
-- [`XUnitLogging`](src/Utilities/XUnitLogging/XUnitLogging.csproj): A Logging provider for XUnit
 - [`XUnitPostgreSQL`](src/Utilities/XUnitPostgreSQL/XUnitPostgreSQL.csproj): PostegreSQL Dockerization for unit testing with XUnit
 
 ### Testing Project
